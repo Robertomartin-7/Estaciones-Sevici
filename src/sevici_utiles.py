@@ -78,11 +78,15 @@ def busca_estaciones_con_disponibilidad(estaciones:list[EstacionSevici], min_dis
     Devuelve:
     lista de EstacionSevici
     """
-    min_disponibilidad = []
-    for n in estaciones:
-        if n % 2 == 0:
-            min_disponibilidad.append(n)
-    return min_disponibilidad
+    resultado = []
+
+    for est in estaciones:
+        if est.capacidad > 0:
+            disponibilidad = est.bicicletas_disponibles / est.capacidad
+            if disponibilidad >= min_disponibilidad:
+                resultado.append(est)
+
+    return resultado
 
 def calcula_distancia(p1: tuple[float, float], p2: tuple[float, float]) -> float:
     """
@@ -95,8 +99,11 @@ def calcula_distancia(p1: tuple[float, float], p2: tuple[float, float]) -> float
     Devuelve:
     float: distancia euclídea entre los dos puntos
     """
-    # TODO: Ejercicio 5
-    pass
+    lat1, lon1 = p1
+    lat2, lon2 = p2
+
+    distancia = ((lat2 - lat1) ** 2 + (lon2 - lon1) ** 2) ** 0.5
+    return distancia
 
 def busca_estacion_mas_cercana(estaciones:list[EstacionSevici], punto:tuple[float, float]) -> EstacionSevici | None:
     """
@@ -109,8 +116,17 @@ def busca_estacion_mas_cercana(estaciones:list[EstacionSevici], punto:tuple[floa
     Devuelve:
     EstacionSevici más cercana con al menos una bicicleta disponible, o None si no hay ninguna.
     """ 
-    # TODO: Ejercicio 5
-    return None
+    estacion_mas_cercana = None
+    distancia_minima = float("inf")
+
+    for est in estaciones:
+        if est.bicicletas_disponibles > 0:
+            distancia = calcula_distancia((est.latitud, est.longitud), punto)
+            if distancia < distancia_minima:
+                distancia_minima = distancia
+                estacion_mas_cercana = est
+
+    return estacion_mas_cercana
 
 def calcula_ruta(estaciones:list[EstacionSevici], origen:tuple[float, float], destino:tuple[float, float]) -> tuple[EstacionSevici | None, EstacionSevici | None]   :
     """
@@ -124,7 +140,16 @@ def calcula_ruta(estaciones:list[EstacionSevici], origen:tuple[float, float], de
     Devuelve:
     tupla con (estacion_origen, estacion_destino)
     """
-    # TODO: Ejercicio 5
-    pass
+    estacion_origen = busca_estacion_mas_cercana(estaciones, origen)
 
+    # Para el destino, buscamos la estación más cercana con al menos un puesto libre
+    estaciones_con_puestos = [e for e in estaciones if e.puestos_libres > 0]
+    estacion_destino = None
+    if estaciones_con_puestos:
+        estacion_destino = min(
+            estaciones_con_puestos,
+            key=lambda e: calcula_distancia((e.latitud, e.longitud), destino)
+        )
+
+    return estacion_origen, estacion_destino
 
